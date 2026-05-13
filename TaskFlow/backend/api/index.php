@@ -16,12 +16,26 @@ if (count($pathParts) >= 2 && $pathParts[0] === 'api' && $pathParts[1] === 'task
     $action = isset($pathParts[3]) ? $pathParts[3] : null;
 
     try {
+        // Get all tasks
         if ($method === 'GET' && !$id) {
             $tasks = $taskModel->getAll();
             echo json_encode(['success' => true, 'message' => 'Tasks retrieved', 'data' => $tasks]);
             exit;
         }
 
+        // Get single task by ID (OPTIONAL/BONUS)
+        if ($method === 'GET' && $id) {
+            $task = $taskModel->getById($id);
+            if (!$task) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Task not found']);
+                exit;
+            }
+            echo json_encode(['success' => true, 'message' => 'Task retrieved', 'data' => $task]);
+            exit;
+        }
+
+        // Create a new task
         if ($method === 'POST' && !$id) {
             $input = json_decode(file_get_contents('php://input'), true);
             $title = isset($input['title']) ? trim($input['title']) : '';
@@ -40,6 +54,7 @@ if (count($pathParts) >= 2 && $pathParts[0] === 'api' && $pathParts[1] === 'task
             exit;
         }
 
+        // Update a task
         if ($method === 'PUT' && $id) {
             $existingTask = $taskModel->getById($id);
             if (!$existingTask) {
@@ -71,6 +86,7 @@ if (count($pathParts) >= 2 && $pathParts[0] === 'api' && $pathParts[1] === 'task
             exit;
         }
 
+        // Toggle task status
         if ($method === 'PATCH' && $id && $action === 'toggle') {
             $existingTask = $taskModel->getById($id);
             if (!$existingTask) {
@@ -84,6 +100,7 @@ if (count($pathParts) >= 2 && $pathParts[0] === 'api' && $pathParts[1] === 'task
             exit;
         }
 
+        // Delete a task
         if ($method === 'DELETE' && $id) {
             $existingTask = $taskModel->getById($id);
             if (!$existingTask) {
@@ -97,6 +114,7 @@ if (count($pathParts) >= 2 && $pathParts[0] === 'api' && $pathParts[1] === 'task
             exit;
         }
 
+        // No matching endpoint
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Endpoint not found']);
         exit;
